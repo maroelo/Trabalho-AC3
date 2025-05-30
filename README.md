@@ -60,3 +60,18 @@ Para executar a simulação diretamente até o final (sem interação ciclo a ci
 ```bash
 ./tomasulo_sim [caminho/para/input.txt] run
 ```
+
+## Instruções
+
+O código C++ fornecido para o simulador de processador com placar de Tomasulo suporta as seguintes operações:
+
+ADDD: Adição de ponto flutuante de precisão dupla.
+SUBD: Subtração de ponto flutuante de precisão dupla.
+MULTD: Multiplicação de ponto flutuante de precisão dupla.
+DIVD: Divisão de ponto flutuante de precisão dupla.
+LD: Carregar palavra dupla (geralmente do tipo load para registradores de ponto flutuante).
+SD: Armazenar palavra dupla (geralmente do tipo store de registradores de ponto flutuante).
+ADD: Adição de inteiros.
+DADDUI: Adição de imediato sem sinal (palavra dupla).
+BEQ: Desvio se igual (Branch if Equal).
+BNEZ: Desvio se não for zero (Branch if Not Equal to Zero).
