@@ -16,9 +16,9 @@ g++ -std=c++17 tomasulo_sim.cpp -o tomasulo_sim -Wall
 
 ---
 
-## ▶️ Execução
+##  Execução
 
-### 🔄 Execução ciclo a ciclo
+###  Execução ciclo a ciclo
 
 Execute o simulador informando o caminho para o arquivo de entrada (`.txt`):
 
@@ -53,7 +53,7 @@ Durante a simulação:
 
 ---
 
-### ⏩ Execução direta até o final
+### Execução direta até o final
 
 Para executar a simulação diretamente até o final (sem interação ciclo a ciclo), utilize:
 
