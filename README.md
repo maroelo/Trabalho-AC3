@@ -65,6 +65,7 @@ Para executar a simulação diretamente até o final (sem interação ciclo a ci
 
 O código C++ fornecido para o simulador de processador com placar de Tomasulo suporta as seguintes operações:
 
+```text
 ADDD: Adição de ponto flutuante de precisão dupla.
 SUBD: Subtração de ponto flutuante de precisão dupla.
 MULTD: Multiplicação de ponto flutuante de precisão dupla.
@@ -75,3 +76,4 @@ ADD: Adição de inteiros.
 DADDUI: Adição de imediato sem sinal (palavra dupla).
 BEQ: Desvio se igual (Branch if Equal).
 BNEZ: Desvio se não for zero (Branch if Not Equal to Zero).
+```
