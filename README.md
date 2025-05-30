@@ -55,7 +55,7 @@ Durante a simulação:
 
 ### Execução direta
 
-Para executar a simulação sem interação ciclo a ciclo, utilize:
+Para executar todos os ciclos de uma só vez, utilize:
 
 ```bash
 ./tomasulo_sim [caminho/para/input.txt] run
