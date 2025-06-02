@@ -41,7 +41,7 @@ MEM_UNITS <TipoDeOperacaoMemoria> <NumeroDeUnidades>
 CONFIG_END
 
 INSTRUCTIONS_BEGIN
-<Opcode> <OperandoDestino> <OperandoFonte1> <OperandoFonte2_ou_OffsetComBase> # Comentário opcional
+<Opcode> <OperandoDestino> <OperandoFonte1> <OperandoFonte2_ou_OffsetComBase>
 <Opcode> <OperandoDestino> <OperandoFonte1> <OperandoFonte2_ou_OffsetComBase>
 ...
 INSTRUCTIONS_END
