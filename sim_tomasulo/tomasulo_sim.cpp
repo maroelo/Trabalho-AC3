@@ -8,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 
-struct InstrucaoInput {
+struct InstrucaoInput { // armazena a instrução lida no arquivo de entrada
     std::string d_operacao;
     std::string r_reg;
     std::string s_reg_or_imm;
@@ -22,14 +22,14 @@ struct ConfigSimulador {
     std::map<std::string, int> unidadesMem;
 };
 
-struct InstrucaoDetalhes {
+struct InstrucaoDetalhes { //campos da instrução
     std::string operacao;
     std::string registradorR;
     std::string registradorS;
     std::string registradorT;
 };
 
-struct EstadoInstrucao {
+struct EstadoInstrucao { //guarda o estado de uma determinada instrução durante a execução do algoritmo
     InstrucaoDetalhes instrucao;
     int posicao;
     std::optional<int> issue;
@@ -79,7 +79,7 @@ public:
     int clock_cycle;
     std::map<std::string, std::optional<std::string>> estacaoRegistradores;
 
-    Estado(const ConfigSimulador& cfg, const std::vector<InstrucaoInput>& instrucoes_input)
+    Estado(const ConfigSimulador& cfg, const std::vector<InstrucaoInput>& instrucoes_input) // inicialização das instruções, registradores e unidades funcionais
         : config(cfg), clock_cycle(0) {
         for (int i = 0; i < instrucoes_input.size(); ++i) {
             InstrucaoDetalhes details;
@@ -121,7 +121,7 @@ public:
         }
     }
 
-    EstadoInstrucao* getNovaInstrucao() {
+    EstadoInstrucao* getNovaInstrucao() { // retorna a próxima instrução que ainda foi emitida 
         for (auto& instr_state : estadoInstrucoes) {
             if (!instr_state.issue.has_value()) {
                 return &instr_state;
@@ -130,7 +130,7 @@ public:
         return nullptr;
     }
 
-    std::string verificaUFInstrucao(const InstrucaoDetalhes& instr_details) {
+    std::string verificaUFInstrucao(const InstrucaoDetalhes& instr_details) { //mapeia a operação para a unidade funcional capaz de executá-la
         const std::string& op = instr_details.operacao;
         if (op == "ADDD" || op == "SUBD") return "Add";
         if (op == "MULTD") return "Mult";
@@ -142,7 +142,9 @@ public:
         return "";
     }
 
-    UnidadeFuncional* getFUVaziaArithInt(const std::string& tipoFU) {
+    //getUFVazia: retorna ponteiro para a unidade funcional livre
+
+    UnidadeFuncional* getFUVaziaArithInt(const std::string& tipoFU) { 
         for (auto& pair : unidadesFuncionais) {
             if (pair.second.tipoUnidade == tipoFU && !pair.second.ocupado) {
                 return &pair.second;
@@ -160,7 +162,7 @@ public:
         return nullptr;
     }
 
-    int getCiclos(const InstrucaoDetalhes& instr_details) {
+    int getCiclos(const InstrucaoDetalhes& instr_details) { //retorna o número de ciclos que a instrução gasta
         const std::string& op_type = verificaUFInstrucao(instr_details);
         if (config.ciclos.count(op_type)) {
             return config.ciclos.at(op_type);
@@ -170,49 +172,8 @@ public:
         return 1;
     }
 
-    void alocaFuMem(UnidadeFuncionalMemoria& uf_mem, const InstrucaoDetalhes& instr_details, EstadoInstrucao& estado_instr_orig) {
-        uf_mem.instrucao_details = instr_details;
-        uf_mem.estadoInstrucaoOriginal = &estado_instr_orig;
-        uf_mem.tempo = getCiclos(instr_details) + 1;
-        uf_mem.ocupado = true;
-        uf_mem.operacao = instr_details.operacao;
-        uf_mem.endereco = instr_details.registradorS + "+" + instr_details.registradorT;
-        uf_mem.destino = instr_details.registradorR;
-        uf_mem.qi = std::nullopt;
-        uf_mem.qj = std::nullopt;
 
-        if (instr_details.operacao == "SD") {
-            if (estacaoRegistradores.count(instr_details.registradorR)) {
-                const auto& producing_fu_name_opt = estacaoRegistradores.at(instr_details.registradorR);
-                if (producing_fu_name_opt.has_value()) {
-                    const std::string& producing_fu_name = producing_fu_name_opt.value();
-                    if (unidadesFuncionais.count(producing_fu_name) || unidadesFuncionaisMemoria.count(producing_fu_name)) {
-                        uf_mem.qi = producing_fu_name;
-                    }
-                }
-            }
-        }
-
-        if (estacaoRegistradores.count(instr_details.registradorT)) {
-            const auto& producing_fu_name_opt = estacaoRegistradores.at(instr_details.registradorT);
-            if (producing_fu_name_opt.has_value()) {
-                const std::string& producing_fu_name = producing_fu_name_opt.value();
-                if (unidadesFuncionais.count(producing_fu_name) || unidadesFuncionaisMemoria.count(producing_fu_name)) {
-                    uf_mem.qj = producing_fu_name;
-                }
-            }
-        }
-    }
-
-    void escreveEstacaoRegistrador(const InstrucaoDetalhes& instr_details, const std::string& ufNome) {
-        if (instr_details.operacao != "SD" && instr_details.operacao != "BEQ" && instr_details.operacao != "BNEZ") {
-            if (!instr_details.registradorR.empty()) {
-                estacaoRegistradores[instr_details.registradorR] = ufNome;
-            }
-        }
-    }
-
-    void alocaFU(UnidadeFuncional& uf, const InstrucaoDetalhes& instr_details, EstadoInstrucao& estado_instr_orig) {
+    void alocaFU(UnidadeFuncional& uf, const InstrucaoDetalhes& instr_details, EstadoInstrucao& estado_instr_orig) { // aloca uma unidade funcional para a instrução
         uf.instrucao_details = instr_details;
         uf.estadoInstrucaoOriginal = &estado_instr_orig;
         uf.tempo = getCiclos(instr_details) + 1;
@@ -275,7 +236,51 @@ public:
         setup_operand(uf.vk, uf.qk, src_reg_k_name);
     }
 
-    void liberaUFEsperandoResultado(const std::string& nomeUFQueTerminou) {
+    void alocaFuMem(UnidadeFuncionalMemoria& uf_mem, const InstrucaoDetalhes& instr_details, EstadoInstrucao& estado_instr_orig) { // aloca uma unidade funcional para a instrução
+        uf_mem.instrucao_details = instr_details;
+        uf_mem.estadoInstrucaoOriginal = &estado_instr_orig;
+        uf_mem.tempo = getCiclos(instr_details) + 1;
+        uf_mem.ocupado = true;
+        uf_mem.operacao = instr_details.operacao;
+        uf_mem.endereco = instr_details.registradorS + "+" + instr_details.registradorT;
+        uf_mem.destino = instr_details.registradorR;
+        uf_mem.qi = std::nullopt;
+        uf_mem.qj = std::nullopt;
+
+        if (instr_details.operacao == "SD") {
+            if (estacaoRegistradores.count(instr_details.registradorR)) {
+                const auto& producing_fu_name_opt = estacaoRegistradores.at(instr_details.registradorR);
+                if (producing_fu_name_opt.has_value()) {
+                    const std::string& producing_fu_name = producing_fu_name_opt.value();
+                    if (unidadesFuncionais.count(producing_fu_name) || unidadesFuncionaisMemoria.count(producing_fu_name)) {
+                        uf_mem.qi = producing_fu_name;
+                    }
+                }
+            }
+        }
+
+        if (estacaoRegistradores.count(instr_details.registradorT)) {
+            const auto& producing_fu_name_opt = estacaoRegistradores.at(instr_details.registradorT);
+            if (producing_fu_name_opt.has_value()) {
+                const std::string& producing_fu_name = producing_fu_name_opt.value();
+                if (unidadesFuncionais.count(producing_fu_name) || unidadesFuncionaisMemoria.count(producing_fu_name)) {
+                    uf_mem.qj = producing_fu_name;
+                }
+            }
+        }
+    }
+
+    void escreveEstacaoRegistrador(const InstrucaoDetalhes& instr_details, const std::string& ufNome) { //informa ao registrador final qual unidade funcional irá lhe entregar o resultado da operação
+        if (instr_details.operacao != "SD" && instr_details.operacao != "BEQ" && instr_details.operacao != "BNEZ") {
+            if (!instr_details.registradorR.empty()) {
+                estacaoRegistradores[instr_details.registradorR] = ufNome;
+            }
+        }
+    }
+
+    
+
+    void liberaUFEsperandoResultado(const std::string& nomeUFQueTerminou) { //libera dependeências que estavam esperando a liberação da unidade funcional
         std::string val_representation = "VAL(" + nomeUFQueTerminou + ")";
 
         for (auto& pair : unidadesFuncionais) {
@@ -327,6 +332,8 @@ public:
         }
     }
 
+    //limpeza das instruções e mudança dos status da unidades funcionais
+
     void desalocaUFMem(UnidadeFuncionalMemoria& uf_mem) {
         uf_mem.instrucao_details = std::nullopt;
         uf_mem.estadoInstrucaoOriginal = nullptr;
@@ -351,7 +358,7 @@ public:
         uf.qk = std::nullopt;
     }
 
-    bool verificaSeJaTerminou() {
+    bool verificaSeJaTerminou() { //retorna true se todas as instruções do arquivo de entrada tiverem escrito seus resultados
         if (estadoInstrucoes.empty()) return true;
         for (const auto& instr_state : estadoInstrucoes) {
             if (!instr_state.write.has_value()) {
@@ -361,7 +368,7 @@ public:
         return true;
     }
 
-    void issueNovaInstrucao() {
+    void issueNovaInstrucao() { //busca a nova instrução, procura uma unidade funcional para alocá-la e marca o ciclo de emissão da instrução
         EstadoInstrucao* nova_instr_estado = getNovaInstrucao();
         if (nova_instr_estado) {
             std::string tipoFU_str = verificaUFInstrucao(nova_instr_estado->instrucao);
@@ -394,7 +401,7 @@ public:
         }
     }
 
-    void executaInstrucao() {
+    void executaInstrucao() { //verifica se a unidade funcional não tem dependências, decrementa o tempo restante de execução e marca o ciclo de término da instrução
         for (auto& pair : unidadesFuncionaisMemoria) {
             UnidadeFuncionalMemoria& uf_mem = pair.second;
             if (uf_mem.ocupado && !uf_mem.qi.has_value() && !uf_mem.qj.has_value()) {
@@ -437,7 +444,7 @@ public:
         }
     }
 
-    void escreveInstrucao() {
+    void escreveInstrucao() { //registra o resultado da instrução em seu registrador de destino
         for (auto& pair : unidadesFuncionaisMemoria) {
             UnidadeFuncionalMemoria& uf_mem = pair.second;
             if (uf_mem.ocupado && uf_mem.tempo.has_value() && uf_mem.tempo.value() == -1 &&
@@ -485,7 +492,7 @@ public:
         }
     }
 
-    bool executa_ciclo() {
+    bool executa_ciclo() { //exxecuta um ciclo completo
         clock_cycle++;
         issueNovaInstrucao();
         executaInstrucao();
@@ -493,7 +500,7 @@ public:
         return verificaSeJaTerminou();
     }
 
-    void printEstadoDebug() const {
+    void printEstadoDebug() const { //imprime o estado das instruções, unidades funcionais, memória e registradores
         std::cout << "\n--- Clock: " << clock_cycle << " ---" << std::endl;
         std::cout << "\n== Status das Instrucoes ==" << std::endl;
         std::cout << std::left << std::setw(5) << "#"
@@ -579,7 +586,7 @@ std::string trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-bool parseInputFile(const std::string& filename, ConfigSimulador& out_config, std::vector<InstrucaoInput>& out_instructions) {
+bool parseInputFile(const std::string& filename, ConfigSimulador& out_config, std::vector<InstrucaoInput>& out_instructions) { //eitura do arquivo de entrada
     std::ifstream infile(filename);
     if (!infile.is_open()) {
         std::cerr << "Error: Could not open file " << filename << std::endl;
@@ -642,7 +649,7 @@ bool parseInputFile(const std::string& filename, ConfigSimulador& out_config, st
     return true;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) { //leitura do arquivo principal, criação do simulador, decisão de execução do algoritmo e executa todas as instruções
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <input_file.txt>" << std::endl;
         return 1;
